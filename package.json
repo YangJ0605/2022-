@@ -1,0 +1,12 @@
+{
+  "name": "2022-write",
+  "version": "1.0.0",
+  "main": "index.js",
+  "license": "MIT",
+  "scripts": {
+    "test": "promises-aplus-tests ./promise/main.js"
+  },
+  "devDependencies": {
+    "promises-aplus-tests": "^2.1.2"
+  }
+}
