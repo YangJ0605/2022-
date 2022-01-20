@@ -168,14 +168,14 @@ MyPromise.any = function (promises) {
       const res = []
       let count = 0
       if (length === 0) {
-        resolve(res)
+        reject([new AggregateError('All promises were rejected')])
         return
       }
 
       promises.forEach((item, index) => {
         MyPromise.resolve(item).then(
-          res => {
-            resolve(res)
+          result => {
+            resolve(result)
           },
           err => {
             count += 1
@@ -213,3 +213,9 @@ MyPromise.race = function (promises) {
     }
   })
 }
+
+MyPromise.any([])
+  .then(res => console.log(res))
+  .catch(err => {
+    console.log('err', err) //[AggregateError: All promises were rejected]
+  })
