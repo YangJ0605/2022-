@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0"
+    />
+    <title>Document</title>
+    <style>
+      .container {
+        width: 600px;
+        height: 600px;
+        margin: 100px auto;
+        border: 1px solid red;
+      }
+
+      .fs-virtuallist-container {
+        width: 100%;
+        height: 100%;
+        overflow-y: auto;
+      }
+
+      .fs-virtuallist-list {
+        width: 100%;
+      }
+
+      .fs-virtuallist-item {
+        width: 100%;
+        height: 100px;
+        box-sizing: border-box;
+        border: 1px solid #000;
+        text-align: center;
+        font-size: 20px;
+        line-height: 100px;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>固定高度的虚拟列表</h1>
+    <div class="container">
+      <div class="fs-virtuallist-container">
+        <div class="fs-virtuallist-list">
+          <!-- <div class="fs-virtuallist-item"></div> -->
+        </div>
+      </div>
+    </div>
+    <script>
+      class VirtualList {
+        constructor(containerSelector, listSelector) {
+          this.vContainer = document.querySelector(containerSelector)
+          this.vList = document.querySelector(listSelector)
+          this.state = {
+            dataList: [],
+            itemHeight: 100,
+            maxItemCount: 0
+          }
+
+          this.startIndex = 0
+          this.lastStart = -1
+          this.endIndex = 0
+          this.renderList = []
+          this.scrollStyle = {}
+        }
+
+        init() {
+          const viewHeight = this.vContainer.offsetHeight
+          this.state.maxItemCount = Math.ceil(viewHeight / this.state.itemHeight) + 1
+          this.addData()
+          this.render()
+          this.vContainer.addEventListener('scroll', this.rafThrottle(this.handleScroll.bind(this)))
+        }
+
+        rafThrottle(fn) {
+          let lock = false;
+          return function (...args) {
+            window.requestAnimationFrame(() => {
+              if (lock) return;
+              lock = true;
+              fn.apply(this, args);
+              lock = false;
+            });
+          };
+        }
+
+        handleScroll() {
+          console.log('scroll')
+          const scrollTop = this.vContainer.scrollTop
+          this.startIndex = Math.floor(scrollTop / this.state.itemHeight)
+          if(this.startIndex !== this.lastStart) this.render()
+          this.lastStart = this.startIndex
+        }
+
+        computedEndIndex() {
+          const end = this.startIndex + this.state.maxItemCount
+          this.endIndex = this.state.dataList[end] ? end : this.state.dataList.length
+          if(this.endIndex >= this.state.dataList.length) {
+            this.addData()
+          }
+        }
+
+        computedRenderList() {
+          this.renderList = this.state.dataList.slice(this.startIndex, this.endIndex)
+        }
+
+        computedScrollStyle() {
+          const {dataList, itemHeight} = this.state
+          this.scrollStyle = {
+            height: `${dataList.length * itemHeight - this.startIndex * itemHeight}px`,
+            transform: `translate3d(0, ${this.startIndex * itemHeight}px, 0)`
+          }
+        }
+
+        render() {
+          console.log('render')
+          this.computedEndIndex()
+          this.computedRenderList()
+          this.computedScrollStyle()
+          const template = this.renderList.map((i) => `<div class="fs-virtuallist-item">${i}</div>`).join("")
+          const { height, transform } = this.scrollStyle
+          this.vList.innerHTML = template
+          this.vList.style.height = height
+          this.vList.style.transform = transform
+        }
+
+        addData() {
+          for (let i = 0; i < 10; i++) {
+            this.state.dataList.push(this.state.dataList.length + 1);
+          }
+        }
+      }
+
+      const vs = new VirtualList('.fs-virtuallist-container', '.fs-virtuallist-list')
+      vs.init()
+    </script>
+  </body>
+</html>
