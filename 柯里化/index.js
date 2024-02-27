@@ -22,3 +22,4 @@ console.log(currySum(1)(3)(2))
 console.log(currySum(1, 2)(3))
 console.log(currySum(1, 2, 3))
 
+console.log(globalThis)
